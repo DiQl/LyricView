@@ -1,10 +1,11 @@
 package cn.zhaiyifan.lyric.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class Lyric {
+public class Lyric implements Serializable {
     private static final String TAG = Lyric.class.getSimpleName();
 
     public String title;
@@ -14,7 +15,7 @@ public class Lyric {
     public String author;
     public int offset;
     public long length;
-    public List<Sentence> sentenceList = new ArrayList<Sentence>(100);
+    public List<Sentence> sentenceList = new ArrayList<>(100);
 
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();

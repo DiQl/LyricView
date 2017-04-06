@@ -6,7 +6,17 @@
 
     <cn.zhaiyifan.lyric.widget.LyricView
         android:id="@+id/lyricView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_width="230dp"
+        android:layout_height="60dp"
+        android:background="@android:color/white"
+        />
+
+    <Button
+        android:id="@+id/btn_restart"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:text="@string/restart"
+        />
 
 </RelativeLayout>
