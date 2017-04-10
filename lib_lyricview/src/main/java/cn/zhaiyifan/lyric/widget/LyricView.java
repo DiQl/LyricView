@@ -33,6 +33,7 @@ public class LyricView extends TextView implements Runnable {
      * 当前歌词画笔.
      */
     private Paint mCurrentPaint;
+    private Paint mNextPaint;
     private Paint mPaint;
 
     private float mMiddleX;
@@ -44,16 +45,22 @@ public class LyricView extends TextView implements Runnable {
      * 背景色.
      */
     private int mBackgroundColor = Color.BLUE;
+//    private int mBackgroundColor = Color.TRANSPARENT;
 
     /**
      * 当前歌词颜色.
      */
-    private int mHighlightColor = Color.RED;
+    private int mHighlightColor = Color.WHITE;
+
+    /**
+     * 当前歌词颜色.
+     */
+    private int mNextLineColor = Color.argb(153, 255, 255, 255);
 
     /**
      * 默认歌词颜色.
      */
-    private int mNormalColor = Color.WHITE;
+    private int mNormalColor = Color.argb(96, 255, 255, 255);
 
     /**
      * 字体大小, px.
@@ -91,7 +98,7 @@ public class LyricView extends TextView implements Runnable {
     /**
      * 是否需要停止.
      */
-    private boolean mStop = true;
+    private boolean mNeedStop = true;
 
     /**
      * 是否在前台.
@@ -111,7 +118,7 @@ public class LyricView extends TextView implements Runnable {
     /**
      * 是否需要拖动歌词.
      */
-    private boolean mCanDrag = true;
+    private boolean mCanDrag = false;
 
     private OnLyricUpdateListener mOnLyricUpdateListener;
 
@@ -149,7 +156,16 @@ public class LyricView extends TextView implements Runnable {
         mCurrentPaint.setTextSize(mTextSize);
         mCurrentPaint.setTypeface(Typeface.SANS_SERIF);
 
+        // next lyric.
+        mNextPaint = new Paint();
+        mNextPaint.setAntiAlias(true);
+        mNextPaint.setColor(mNextLineColor);
+        mNextPaint.setTextSize(mTextSize);
+        mNextPaint.setTypeface(Typeface.SANS_SERIF);
+
+
         mPaint.setTextAlign(Paint.Align.CENTER);
+        mNextPaint.setTextAlign(Paint.Align.CENTER);
         mCurrentPaint.setTextAlign(Paint.Align.CENTER);
 
         setHorizontallyScrolling(true);
@@ -206,8 +222,11 @@ public class LyricView extends TextView implements Runnable {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (lyric == null)
+
+        if (lyric == null) {
             return;
+        }
+
         List<Lyric.Sentence> sentenceList = lyric.sentenceList;
         if (sentenceList == null || sentenceList.isEmpty() || mLyricIndex == -2) {
             return;
@@ -231,8 +250,13 @@ public class LyricView extends TextView implements Runnable {
             if (currY > mHeight) {
                 break;
             }
+
             // Draw and Move down
-            currY += DY * drawText(canvas, mPaint, sentenceList.get(i).content, currY);
+            if (i == mLyricIndex + 1) { // 当前的下一行;
+                currY += DY * drawText(canvas, mNextPaint, sentenceList.get(i).content, currY);
+            } else { // 下一行以外的.
+                currY += DY * drawText(canvas, mPaint, sentenceList.get(i).content, currY);
+            }
             // canvas.translate(0, DY);
         }
 
@@ -249,18 +273,22 @@ public class LyricView extends TextView implements Runnable {
         }
 
         if (mIsTouched > 0 && DEBUG) {
-            mPaint.setTextAlign(Paint.Align.LEFT);
-            canvas.drawText(String.format("%s - %s", lyric.artist, lyric.title), 10, 50, mPaint);
-            canvas.drawText("offset: " + lyric.offset, 10, 150, mPaint);
-            if (mLyricIndex >= 0) {
-                int seconds = (int) ((lyric.sentenceList.get(mLyricIndex).fromTime / 1000));
-                int minutes = seconds / 60;
-                seconds = seconds % 60;
-                canvas.drawText(String.format("%02d:%02d", minutes, seconds), 10, 100, mPaint);
-            }
-            --mIsTouched;
-            mPaint.setTextAlign(Paint.Align.CENTER);
+            drawMusicInfo(canvas);
         }
+    }
+
+    private void drawMusicInfo(Canvas canvas) {
+        mPaint.setTextAlign(Paint.Align.LEFT);
+        canvas.drawText(String.format("%s - %s", lyric.artist, lyric.title), 10, 50, mPaint);
+        canvas.drawText("offset: " + lyric.offset, 10, 150, mPaint);
+        if (mLyricIndex >= 0) {
+            int seconds = (int) ((lyric.sentenceList.get(mLyricIndex).fromTime / 1000));
+            int minutes = seconds / 60;
+            seconds = seconds % 60;
+            canvas.drawText(String.format("%02d:%02d", minutes, seconds), 10, 100, mPaint);
+        }
+        --mIsTouched;
+        mPaint.setTextAlign(Paint.Align.CENTER);
     }
 
     protected void onSizeChanged(int w, int h, int ow, int oh) {
@@ -390,7 +418,7 @@ public class LyricView extends TextView implements Runnable {
         if (DEBUG) {
             Log.d(TAG, "play() called");
         }
-        mStop = false;
+        mNeedStop = false;
         Thread thread = new Thread(this);
         thread.start();
     }
@@ -416,7 +444,7 @@ public class LyricView extends TextView implements Runnable {
         if (DEBUG) {
             Log.d(TAG, "stop() called");
         }
-        mStop = true;
+        mNeedStop = true;
     }
 
     @Override
@@ -426,7 +454,7 @@ public class LyricView extends TextView implements Runnable {
         }
 
         while (mLyricIndex != -2) {
-            if (mStop) {
+            if (mNeedStop) {
                 mPlaying = false;
                 return;
             }
@@ -444,7 +472,7 @@ public class LyricView extends TextView implements Runnable {
                 }
             }
             if (mNextSentenceTime == -1) {
-                mStop = true;
+                mNeedStop = true;
             }
         }
 
@@ -456,8 +484,21 @@ public class LyricView extends TextView implements Runnable {
         return (int) (dp * scale + 0.5f);
     }
 
+    /**
+     * 是否正在播放.
+     * @return
+     */
     public boolean isPlaying() {
         return mPlaying;
+    }
+
+    /**
+     * 设置是否可拖动.
+     * <p>默认不可拖动.</p>
+     * @param canDrag
+     */
+    public void setCanDrag(boolean canDrag) {
+        mCanDrag = canDrag;
     }
 
     public interface OnLyricUpdateListener {

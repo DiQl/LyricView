@@ -2,14 +2,22 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/black"
     tools:context=".MainActivity">
 
     <cn.zhaiyifan.lyric.widget.LyricView
         android:id="@+id/lyricView"
         android:layout_width="230dp"
-        android:layout_height="60dp"
+        android:layout_height="match_parent"
         android:background="@android:color/white"
         />
+
+    <!--<cn.zhaiyifan.lyric.widget.LyricView-->
+        <!--android:id="@+id/lyricView"-->
+        <!--android:layout_width="230dp"-->
+        <!--android:layout_height="60dp"-->
+        <!--android:background="@android:color/white"-->
+        <!--/>-->
 
     <Button
         android:id="@+id/btn_restart"
