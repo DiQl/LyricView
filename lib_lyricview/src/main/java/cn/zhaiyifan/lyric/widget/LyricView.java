@@ -61,8 +61,8 @@ public class LyricView extends TextView implements Runnable {
     /**
      * 背景色.
      */
-    private int mBackgroundColor = Color.BLUE;
-//    private int mBackgroundColor = Color.TRANSPARENT;
+//    private int mBackgroundColor = Color.BLUE;
+    private int mBackgroundColor = Color.TRANSPARENT;
 
     /**
      * 当前歌词颜色.
@@ -556,6 +556,19 @@ public class LyricView extends TextView implements Runnable {
      */
     public void setCurrGravity(int currGravity) {
         mCurrGravity = currGravity;
+    }
+
+    public int getMaxDrawLines() {
+        return mMaxDrawLines;
+    }
+
+    /**
+     * 设置最多展示歌词数目.
+     * <p>仅在歌词展示为TOP模式, 当> 0时生效.</p>
+     * @param maxDrawLines
+     */
+    public void setMaxDrawLines(int maxDrawLines) {
+        mMaxDrawLines = maxDrawLines;
     }
 
     public interface OnLyricUpdateListener {

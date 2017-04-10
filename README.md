@@ -4,14 +4,6 @@ Android LyricView that accepts lrc stream as input, it is used in my project [Ly
 
 This library offers a simple view that accepts lrc stream as input, shows lyric and automatically move according the timestamp of each sentence in lyric. It also supports scroll gesture.
 
-Usage
------
-```gradle
-dependencies {
-    compile 'cn.zhaiyifan:lyricview:1.0.1'
-}
-```
-
 ```java
 mLyricView = (LyricView) findViewById(R.id.lyricView);
 // You can call setLyric anytime to change the lyric to another

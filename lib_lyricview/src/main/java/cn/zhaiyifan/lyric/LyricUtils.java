@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -19,6 +20,20 @@ import java.util.List;
 public class LyricUtils {
     private static final String TAG = LyricUtils.class.getSimpleName();
 
+    public static Lyric parseLyric(String lrc) {
+        Lyric lyric = new Lyric();
+        try {
+            BufferedReader br = new BufferedReader(new StringReader(lrc));
+            String line;
+            while ((line = br.readLine()) != null) {
+                parseLine(line, lyric);
+            }
+            Collections.sort(lyric.sentenceList, new Lyric.SentenceComparator());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return lyric;
+    }
 
     public static Lyric parseLyric(InputStream inputStream, String Encoding) {
         Lyric lyric = new Lyric();
