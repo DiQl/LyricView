@@ -20,7 +20,7 @@ public class DemoActivity extends Activity implements View.OnClickListener {
         mLyricView = (LyricView) findViewById(R.id.lyricView);
         mBtnRestart = (Button) findViewById(R.id.btn_restart);
         mLyricView.setLyric(LyricUtils.parseLyric(
-                getResources().openRawResource(R.raw.test), "UTF-8"));
+                getResources().openRawResource(R.raw.testfile), "UTF-8"));
         mLyricView.setLyricIndex(0);
         mLyricView.play();
 

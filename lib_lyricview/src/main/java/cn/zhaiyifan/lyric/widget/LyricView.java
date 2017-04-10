@@ -8,6 +8,7 @@ import android.graphics.Typeface;
 import android.text.method.ScrollingMovementMethod;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.widget.TextView;
 
@@ -27,6 +28,11 @@ public class LyricView extends TextView implements Runnable {
     public static final boolean DEBUG = true;
 
     /**
+     * 每行歌词默认高度,19dp;
+     */
+//    private static final int DY = 19;
+
+    /**
      * 当前行在顶部显示;
      */
     public static final int TOP = 0;
@@ -34,11 +40,11 @@ public class LyricView extends TextView implements Runnable {
     /**
      * 当前行在中间显示;
      */
-    public static final int Center = 1;
+    public static final int CENTER = 1;
 
     private Lyric lyric;
 
-    private static final int DY = 50;
+
 
     /**
      * 当前歌词画笔.
@@ -78,6 +84,8 @@ public class LyricView extends TextView implements Runnable {
      * 默认 14dp.
      */
     private int mTextSize = 14;
+
+    private int mLineHeight = 18;
 
     /**
      * 歌词索引.
@@ -133,6 +141,8 @@ public class LyricView extends TextView implements Runnable {
 
     private int mCurrGravity = TOP;
 
+    private int mMaxDrawLines = 3;
+
     private OnLyricUpdateListener mOnLyricUpdateListener;
 
     public LyricView(Context context) {
@@ -154,6 +164,7 @@ public class LyricView extends TextView implements Runnable {
         setBackgroundColor(mBackgroundColor);
 
         mTextSize = dp2px(mTextSize);
+        mLineHeight = dp2px(mLineHeight);
 
         // Non-highlight part
         mPaint = new Paint();
@@ -216,10 +227,10 @@ public class LyricView extends TextView implements Runnable {
                 if (DEBUG) {
                     Log.d(TAG, "drawText: str:" + str);
                 }
-                if (startY < mMiddleY)
-                    canvas.drawText(str, mMiddleX, startY - (linesLength - line) * DY, paint);
+                if (startY < getCurrY())
+                    canvas.drawText(str, mMiddleX, startY - (linesLength - line) * mLineHeight, paint);
                 else
-                    canvas.drawText(str, mMiddleX, startY + (line - 1) * DY, paint);
+                    canvas.drawText(str, mMiddleX, startY + (line - 1) * mLineHeight, paint);
             }
         } else {
             ++line;
@@ -250,32 +261,39 @@ public class LyricView extends TextView implements Runnable {
 
         if (mLyricIndex > -1) {
             // Current line with highlighted color
-            currY = getCurrY() + DY * drawText(
+            currY = getCurrY() + mLineHeight * drawText(
                     canvas, mCurrentPaint, sentenceList.get(mLyricIndex).content, getCurrY());
         } else {
             // First line is not from timestamp 0
-            currY = getCurrY() + DY;
+            currY = getCurrY() + mLineHeight;
         }
 
-        // Draw sentences afterwards
+        // Draw sentences afterwards.
         int size = sentenceList.size();
         for (int i = mLyricIndex + 1; i < size; i++) {
             if (currY > mHeight) {
                 break;
             }
 
+            if (mCurrGravity == TOP) {
+                if (mMaxDrawLines > 0 && i >= mLyricIndex + mMaxDrawLines) {
+                    break;
+                }
+            }
+
+
             // Draw and Move down
             if (i == mLyricIndex + 1) { // 当前的下一行;
-                currY += DY * drawText(canvas, mNextPaint, sentenceList.get(i).content, currY);
+                currY += mLineHeight * drawText(canvas, mNextPaint, sentenceList.get(i).content, currY);
             } else { // 下一行以外的.
-                currY += DY * drawText(canvas, mPaint, sentenceList.get(i).content, currY);
+                currY += mLineHeight * drawText(canvas, mPaint, sentenceList.get(i).content, currY);
             }
             // canvas.translate(0, DY);
         }
 
-        // 如果是从顶部开始绘制当前行, 之前的歌词就不需要绘制了.
+        // 绘制之前的歌词.如果是从顶部开始绘制当前行, 之前的歌词就不需要绘制了.
         if (mCurrGravity != TOP) {
-            currY = getCurrY() - DY;
+            currY = getCurrY() - mLineHeight;
 
             // Draw sentences before current one
             for (int i = mLyricIndex - 1; i >= 0; i--) {
@@ -283,7 +301,7 @@ public class LyricView extends TextView implements Runnable {
                     break;
                 }
                 // Draw and move upwards
-                currY -= DY * drawText(canvas, mPaint, sentenceList.get(i).content, currY);
+                currY -= mLineHeight * drawText(canvas, mPaint, sentenceList.get(i).content, currY);
                 // canvas.translate(0, DY);
             }
         }
@@ -312,7 +330,7 @@ public class LyricView extends TextView implements Runnable {
     private float getCurrY() {
         float currY = mMiddleY;
         if (mCurrGravity == TOP) {
-            currY = mTextSize;
+            currY = mLineHeight;
         }
         return currY;
     }
@@ -525,6 +543,19 @@ public class LyricView extends TextView implements Runnable {
      */
     public void setCanDrag(boolean canDrag) {
         mCanDrag = canDrag;
+    }
+
+    public int getCurrGravity() {
+        return mCurrGravity;
+    }
+
+    /**
+     * 设置当前歌词的显示位置.
+     * <p>目前支持:顶部:top; 中间: center;</p>
+     * @param currGravity
+     */
+    public void setCurrGravity(int currGravity) {
+        mCurrGravity = currGravity;
     }
 
     public interface OnLyricUpdateListener {
